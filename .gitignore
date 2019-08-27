@@ -30,3 +30,6 @@ package-lock.json
 
 # VS Code
 .vscode
+
+# JetBrains
+.idea
