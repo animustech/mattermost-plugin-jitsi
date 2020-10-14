@@ -1,40 +1,31 @@
-
 var path = require('path');
 
 module.exports = {
     entry: [
-        './src/index.jsx'
+        './src/index.tsx'
     ],
     resolve: {
         modules: [
             'src',
-            'node_modules',
-            path.resolve(__dirname)
+            'node_modules'
         ],
-        extensions: ['*', '.js', '.jsx']
+        extensions: ['*', '.js', '.jsx', '.ts', '.tsx']
     },
     module: {
         rules: [
             {
-                test: /\.(js|jsx)$/,
+                test: /\.(ts|tsx)$/,
                 exclude: /node_modules/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['env', 'react'],
-                        plugins: [
-                            'transform-class-properties',
-                            'transform-object-rest-spread'
-                        ]
-                    }
-                }
+                use: 'ts-loader'
             }
         ]
     },
     externals: {
         react: 'React',
         redux: 'Redux',
-        'react-redux': 'ReactRedux'
+        'react-redux': 'ReactRedux',
+        'prop-types': 'PropTypes',
+        'react-bootstrap': 'ReactBootstrap'
     },
     output: {
         path: path.join(__dirname, '/dist'),

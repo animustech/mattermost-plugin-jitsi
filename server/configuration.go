@@ -5,8 +5,10 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"reflect"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +24,25 @@ import (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
-	JitsiURL string
+	JitsiURL               string
+	JitsiJWT               bool
+	JitsiEmbedded          bool
+	JitsiAppID             string
+	JitsiAppSecret         string
+	JitsiLinkValidTime     int
+	JitsiNamingScheme      string
+	JitsiCompatibilityMode bool
+}
+
+const publicJitsiServerURL = "https://meet.jit.si"
+
+// GetJitsiURL return the currently configured JitsiURL or the URL from the
+// public servers provided by Jitsi.
+func (c *configuration) GetJitsiURL() string {
+	if len(c.JitsiURL) > 0 {
+		return c.JitsiURL
+	}
+	return publicJitsiServerURL
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -34,8 +54,23 @@ func (c *configuration) Clone() *configuration {
 
 // IsValid checks if all needed fields are set.
 func (c *configuration) IsValid() error {
-	if len(c.JitsiURL) == 0 {
-		return fmt.Errorf("JitsiUrl is not configured.")
+	if len(c.JitsiURL) > 0 {
+		_, err := url.Parse(c.JitsiURL)
+		if err != nil {
+			return fmt.Errorf("error invalid jitsiURL")
+		}
+	}
+
+	if c.JitsiJWT {
+		if len(c.JitsiAppID) == 0 {
+			return fmt.Errorf("error no Jitsi app ID was provided")
+		}
+		if len(c.JitsiAppSecret) == 0 {
+			return fmt.Errorf("error no Jitsi app secter provided")
+		}
+		if c.JitsiLinkValidTime < 1 {
+			c.JitsiLinkValidTime = 30
+		}
 	}
 
 	return nil
@@ -79,6 +114,7 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 		panic("setConfiguration called with the existing configuration")
 	}
 
+	p.API.PublishWebSocketEvent(configChangeEvent, nil, &model.WebsocketBroadcast{})
 	p.configuration = configuration
 }
 
