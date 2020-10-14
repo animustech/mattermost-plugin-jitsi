@@ -12,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
+var LETTERS = []rune("abcdefghijklmnopqrstuvwxyz")
+
 func randomInt(max int) int {
 	value, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
 	if err != nil {
@@ -19,10 +21,6 @@ func randomInt(max int) int {
 		panic(err.Error())
 	}
 	return int(value.Int64())
-}
-
-func randomElement(s []string) string {
-	return s[randomInt(len(s))]
 }
 
 func randomString(runes []rune, n int) string {
